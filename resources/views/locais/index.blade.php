@@ -2,8 +2,7 @@
 
 @section('title', 'Locais - Vianorte')
 @section('pageTitle', 'Locais')
-@section('pageDescription', 'Gerencie os locais vinculados às rotas e os locais do almoxarifado.')
-
+@section('pageDescription', 'Gerencie os locais vinculados às rotas, almoxarifados e centros de custo.')
 @section('content')
     <div class="page-head">
         <div>
@@ -12,11 +11,16 @@
         </div>
 
         <div class="actions-inline">
-            <button type="button" class="btn btn-green" onclick="openModal('modal-create-location')">
-                <i class="bi bi-plus-circle"></i>
-                <span>Novo local</span>
-            </button>
-        </div>
+    <a href="{{ route('locais.pdf', ['scope' => $scopeFilter, 'route_id' => $routeFilter]) }}" class="btn btn-red">
+        <i class="bi bi-file-earmark-pdf"></i>
+        <span>Baixar PDF</span>
+    </a>
+
+    <button type="button" class="btn btn-green" onclick="openModal('modal-create-location')">
+        <i class="bi bi-plus-circle"></i>
+        <span>Novo local</span>
+    </button>
+</div>
     </div>
 
     @if(session('success'))
@@ -44,10 +48,11 @@
                     <div class="form-group">
                         <label class="form-label">Tipo do local</label>
                         <select name="scope" class="form-control-custom" onchange="this.form.submit()">
-                            <option value="">Todos</option>
-                            <option value="rota" {{ $scopeFilter === 'rota' ? 'selected' : '' }}>Rota</option>
-                            <option value="almoxarifado" {{ $scopeFilter === 'almoxarifado' ? 'selected' : '' }}>Almoxarifado</option>
-                        </select>
+    <option value="">Todos</option>
+    <option value="rota" {{ $scopeFilter === 'rota' ? 'selected' : '' }}>Rota</option>
+    <option value="almoxarifado" {{ $scopeFilter === 'almoxarifado' ? 'selected' : '' }}>Almoxarifado</option>
+    <option value="centro_custo" {{ $scopeFilter === 'centro_custo' ? 'selected' : '' }}>Centro de Custo</option>
+</select>
                     </div>
 
                     <div class="form-group">
@@ -74,6 +79,37 @@
             </form>
         </div>
     </div>
+    <style>
+        .btn-red{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    height:42px;
+    padding:0 18px;
+    border:none;
+    border-radius:14px;
+    background:linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    color:#fff;
+    font-weight:700;
+    font-size:.95rem;
+    text-decoration:none;
+    cursor:pointer;
+    transition:.2s ease;
+    box-shadow:0 10px 24px rgba(239, 68, 68, .18);
+}
+
+.btn-red:hover{
+    transform:translateY(-1px);
+    filter:brightness(1.05);
+    color:#fff;
+    text-decoration:none;
+}
+
+.btn-red i{
+    font-size:1rem;
+}
+    </style>
 
     <div class="card">
         <div class="card-header">
@@ -100,12 +136,14 @@
                                 <td>{{ $local->id }}</td>
                                 <td>{{ $local->name }}</td>
                                 <td>
-                                    @if($local->scope === 'rota')
-                                        <span class="badge-status badge-info">Rota</span>
-                                    @else
-                                        <span class="badge-status badge-warning">Almoxarifado</span>
-                                    @endif
-                                </td>
+    @if($local->scope === 'rota')
+        <span class="badge-status badge-info">Rota</span>
+    @elseif($local->scope === 'almoxarifado')
+        <span class="badge-status badge-warning">Almoxarifado</span>
+    @else
+        <span class="badge-status badge-dark">Centro de Custo</span>
+    @endif
+</td>
                                 <td>{{ $local->route?->name ?? '-' }}</td>
                                 <td>{{ $local->address ?: 'Sem endereço' }}</td>
                                 <td>
@@ -180,19 +218,25 @@
                         <div class="form-group">
                             <label class="form-label">Tipo do local</label>
                             <select name="scope" class="form-control-custom local-scope-select" required>
-                                <option value="rota"
-                                    {{ session('open_modal') === 'create'
-                                        ? (old('scope', $scopeFilter ?: 'rota') === 'rota' ? 'selected' : '')
-                                        : (($scopeFilter ?: 'rota') === 'rota' ? 'selected' : '') }}>
-                                    Rota
-                                </option>
-                                <option value="almoxarifado"
-                                    {{ session('open_modal') === 'create'
-                                        ? (old('scope', $scopeFilter) === 'almoxarifado' ? 'selected' : '')
-                                        : ($scopeFilter === 'almoxarifado' ? 'selected' : '') }}>
-                                    Almoxarifado
-                                </option>
-                            </select>
+    <option value="rota"
+        {{ session('open_modal') === 'create'
+            ? (old('scope', $scopeFilter ?: 'rota') === 'rota' ? 'selected' : '')
+            : (($scopeFilter ?: 'rota') === 'rota' ? 'selected' : '') }}>
+        Rota
+    </option>
+    <option value="almoxarifado"
+        {{ session('open_modal') === 'create'
+            ? (old('scope', $scopeFilter) === 'almoxarifado' ? 'selected' : '')
+            : ($scopeFilter === 'almoxarifado' ? 'selected' : '') }}>
+        Almoxarifado
+    </option>
+    <option value="centro_custo"
+        {{ session('open_modal') === 'create'
+            ? (old('scope', $scopeFilter) === 'centro_custo' ? 'selected' : '')
+            : ($scopeFilter === 'centro_custo' ? 'selected' : '') }}>
+        Centro de Custo
+    </option>
+</select>
                         </div>
 
                         <div class="form-group route-select-wrapper">
@@ -288,15 +332,19 @@
                             <div class="form-group">
                                 <label class="form-label">Tipo do local</label>
                                 <select name="scope" class="form-control-custom local-scope-select" required>
-                                    <option value="rota"
-                                        {{ (session('open_modal') === 'edit_' . $local->id ? old('scope') : $local->scope) === 'rota' ? 'selected' : '' }}>
-                                        Rota
-                                    </option>
-                                    <option value="almoxarifado"
-                                        {{ (session('open_modal') === 'edit_' . $local->id ? old('scope') : $local->scope) === 'almoxarifado' ? 'selected' : '' }}>
-                                        Almoxarifado
-                                    </option>
-                                </select>
+    <option value="rota"
+        {{ (session('open_modal') === 'edit_' . $local->id ? old('scope') : $local->scope) === 'rota' ? 'selected' : '' }}>
+        Rota
+    </option>
+    <option value="almoxarifado"
+        {{ (session('open_modal') === 'edit_' . $local->id ? old('scope') : $local->scope) === 'almoxarifado' ? 'selected' : '' }}>
+        Almoxarifado
+    </option>
+    <option value="centro_custo"
+        {{ (session('open_modal') === 'edit_' . $local->id ? old('scope') : $local->scope) === 'centro_custo' ? 'selected' : '' }}>
+        Centro de Custo
+    </option>
+</select>
                             </div>
 
                             <div class="form-group route-select-wrapper">
@@ -396,11 +444,11 @@
 
             if (!scopeSelect || !routeWrapper) return;
 
-            if (scopeSelect.value === 'almoxarifado') {
-                routeWrapper.style.display = 'none';
-            } else {
-                routeWrapper.style.display = '';
-            }
+            if (scopeSelect.value === 'rota') {
+    routeWrapper.style.display = '';
+} else {
+    routeWrapper.style.display = 'none';
+}
         }
 
         document.addEventListener('keydown', function (event) {

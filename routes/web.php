@@ -289,22 +289,24 @@ Route::middleware('auth')->group(function () {
                 ->name('rotas.toggle');
 
             /*
-            |--------------------------------------------------------------------------
-            | Locais
-            |--------------------------------------------------------------------------
-            */
-            Route::get('/locais', [LocalController::class, 'index'])
-                ->name('locais.index');
+|--------------------------------------------------------------------------
+| Locais
+|--------------------------------------------------------------------------
+*/
+Route::get('/locais', [LocalController::class, 'index'])
+    ->name('locais.index');
 
-            Route::post('/locais', [LocalController::class, 'store'])
-                ->name('locais.store');
+Route::get('/locais/pdf', [LocalController::class, 'pdf'])
+    ->name('locais.pdf');
 
-            Route::put('/locais/{local}', [LocalController::class, 'update'])
-                ->name('locais.update');
+Route::post('/locais', [LocalController::class, 'store'])
+    ->name('locais.store');
 
-            Route::patch('/locais/{local}/toggle', [LocalController::class, 'toggle'])
-                ->name('locais.toggle');
+Route::put('/locais/{local}', [LocalController::class, 'update'])
+    ->name('locais.update');
 
+Route::patch('/locais/{local}/toggle', [LocalController::class, 'toggle'])
+    ->name('locais.toggle');
             /*
             |--------------------------------------------------------------------------
             | Produtos
@@ -361,6 +363,7 @@ Route::middleware('auth')->group(function () {
 
             Route::delete('/funcionarios/{employee}', [EmployeeController::class, 'destroy'])
                 ->name('employees.destroy');
+            Route::get('/employees/pdf', [EmployeeController::class, 'pdf'])->name('employees.pdf');
 
             /*
             |--------------------------------------------------------------------------

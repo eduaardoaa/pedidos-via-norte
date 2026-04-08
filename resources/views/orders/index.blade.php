@@ -715,284 +715,331 @@
         </div>
     </div>
 </div>
-
-<form id="formPdfLote" method="POST" action="{{ route('orders.pdf.batch') }}" style="display:none;">
-    @csrf
-    <div id="pdfLoteInputs"></div>
-</form>
-
-<form id="formExcelLote" method="POST" action="{{ route('orders.excel.batch') }}" style="display:none;">
-    @csrf
-    <div id="excelLoteInputs"></div>
-</form>
-
 <script>
-    const PEDIDOS_STORAGE_KEY = 'orders_selected_ids_v1';
+    (function () {
+        const PEDIDOS_STORAGE_KEY = 'orders_selected_ids_v1';
 
-    function getCheckboxesPedidos() {
-        return Array.from(document.querySelectorAll('.pedido-item-check'));
-    }
-
-    function getSelectedOrdersStorage() {
-        try {
-            const data = JSON.parse(sessionStorage.getItem(PEDIDOS_STORAGE_KEY) || '[]');
-            return Array.isArray(data) ? data.map(String) : [];
-        } catch (e) {
-            return [];
-        }
-    }
-
-    function setSelectedOrdersStorage(ids) {
-        sessionStorage.setItem(PEDIDOS_STORAGE_KEY, JSON.stringify([...new Set(ids.map(String))]));
-    }
-
-    function addSelectedOrder(id) {
-        const ids = getSelectedOrdersStorage();
-        const stringId = String(id);
-
-        if (!ids.includes(stringId)) {
-            ids.push(stringId);
-            setSelectedOrdersStorage(ids);
-        }
-    }
-
-    function removeSelectedOrder(id) {
-        const stringId = String(id);
-        const ids = getSelectedOrdersStorage().filter(function (item) {
-            return item !== stringId;
-        });
-
-        setSelectedOrdersStorage(ids);
-    }
-
-    function getPedidosSelecionados() {
-        return getSelectedOrdersStorage();
-    }
-
-    // Se quiser limpar apenas em reload manual da página, mantenha isso.
-    // Se quiser preservar até no F5, pode apagar esse bloco inteiro.
-    (function controlarSelecaoAoEntrarNaPagina() {
-        const navigationEntries = performance.getEntriesByType('navigation');
-        const foiReload = navigationEntries.length && navigationEntries[0].type === 'reload';
-
-        if (foiReload) {
-            sessionStorage.removeItem(PEDIDOS_STORAGE_KEY);
-        }
-    })();
-
-    function aplicarSelecaoSalvaNaPagina() {
-        const idsSelecionados = getSelectedOrdersStorage();
-
-        getCheckboxesPedidos().forEach(function (checkbox) {
-            checkbox.checked = idsSelecionados.includes(String(checkbox.value));
-        });
-
-        atualizarContadorSelecionados();
-    }
-
-    function atualizarContadorSelecionados() {
-        const idsSelecionados = getSelectedOrdersStorage();
-        const checkboxes = getCheckboxesPedidos();
-        const checkboxVisiveisMarcados = checkboxes.filter(function (checkbox) {
-            return checkbox.checked;
-        });
-
-        document.getElementById('contadorSelecionados').innerText = idsSelecionados.length;
-
-        const marcarTodos = document.getElementById('marcarTodosPedidos');
-
-        if (!checkboxes.length) {
-            marcarTodos.checked = false;
-            marcarTodos.indeterminate = false;
-            return;
+        function getCheckboxesPedidos() {
+            return Array.from(document.querySelectorAll('.pedido-item-check'));
         }
 
-        if (checkboxVisiveisMarcados.length === 0) {
-            marcarTodos.checked = false;
-            marcarTodos.indeterminate = false;
-            return;
-        }
+        function getSelectedOrdersStorage() {
+            try {
+                const raw = sessionStorage.getItem(PEDIDOS_STORAGE_KEY);
+                const data = JSON.parse(raw || '[]');
 
-        if (checkboxVisiveisMarcados.length === checkboxes.length) {
-            marcarTodos.checked = true;
-            marcarTodos.indeterminate = false;
-            return;
-        }
-
-        marcarTodos.checked = false;
-        marcarTodos.indeterminate = true;
-    }
-
-    function marcarDesmarcarTodosPedidos(checked) {
-        getCheckboxesPedidos().forEach(function (checkbox) {
-            checkbox.checked = checked;
-
-            if (checked) {
-                addSelectedOrder(checkbox.value);
-            } else {
-                removeSelectedOrder(checkbox.value);
-            }
-        });
-
-        atualizarContadorSelecionados();
-    }
-
-    function limparSelecao() {
-        setSelectedOrdersStorage([]);
-        aplicarSelecaoSalvaNaPagina();
-    }
-
-    function preencherInputsLote(containerId, ids) {
-        const container = document.getElementById(containerId);
-        container.innerHTML = '';
-
-        ids.forEach(function (id) {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'order_ids[]';
-            input.value = id;
-            container.appendChild(input);
-        });
-    }
-
-    document.getElementById('btnPdfSelecionados').addEventListener('click', function () {
-        const ids = getPedidosSelecionados();
-
-        if (!ids.length) {
-            alert('Selecione pelo menos um pedido para gerar as requisições PDF.');
-            return;
-        }
-
-        preencherInputsLote('pdfLoteInputs', ids);
-        document.getElementById('formPdfLote').submit();
-    });
-
-    document.getElementById('btnExcelSelecionados').addEventListener('click', function () {
-        const ids = getPedidosSelecionados();
-
-        if (!ids.length) {
-            alert('Selecione pelo menos um pedido para gerar a contagem Excel.');
-            return;
-        }
-
-        preencherInputsLote('excelLoteInputs', ids);
-        document.getElementById('formExcelLote').submit();
-    });
-
-    document.addEventListener('change', function (event) {
-        if (event.target && event.target.id === 'marcarTodosPedidos') {
-            marcarDesmarcarTodosPedidos(event.target.checked);
-        }
-
-        if (event.target && event.target.classList.contains('pedido-item-check')) {
-            if (event.target.checked) {
-                addSelectedOrder(event.target.value);
-            } else {
-                removeSelectedOrder(event.target.value);
-            }
-
-            atualizarContadorSelecionados();
-        }
-    });
-
-    async function abrirModalPedidoPorId(itemId, itemType = 'order') {
-        const modal = document.getElementById('modalPedidoVisualizar');
-        const tbody = document.getElementById('pedidoItensBody');
-
-        const tituloPrefixo = itemType === 'epi_delivery' ? 'Entrega de EPI #' : 'Pedido #';
-
-        document.getElementById('modalPedidoTitulo').innerText = tituloPrefixo + itemId;
-        document.getElementById('modalPedidoSubtitulo').innerText = 'Carregando detalhes...';
-
-        document.getElementById('pedidoTipo').innerText = '-';
-        document.getElementById('pedidoLocal').innerText = '-';
-        document.getElementById('pedidoRota').innerText = '-';
-        document.getElementById('pedidoUsuario').innerText = '-';
-        document.getElementById('pedidoData').innerText = '-';
-        document.getElementById('pedidoStatus').innerText = '-';
-        document.getElementById('pedidoTotalItens').innerText = '-';
-        document.getElementById('pedidoTotalUnidades').innerText = '-';
-        document.getElementById('btnEditarDoModal').href = '#';
-        document.getElementById('btnEditarDoModal').style.display = itemType === 'order' ? 'inline-flex' : 'none';
-
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Carregando...</td></tr>`;
-
-        modal.classList.add('is-open');
-        document.body.classList.add('modal-open');
-
-        try {
-            const quickViewUrl = itemType === 'epi_delivery'
-                ? `{{ url('/epi-deliveries') }}/${itemId}/quick-view`
-                : `{{ url('/pedidos') }}/${itemId}/quick-view`;
-
-            const response = await fetch(quickViewUrl, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
+                if (!Array.isArray(data)) {
+                    return [];
                 }
+
+                return [...new Set(data.map(String))];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function setSelectedOrdersStorage(ids) {
+            const idsUnicos = [...new Set((ids || []).map(String))];
+            sessionStorage.setItem(PEDIDOS_STORAGE_KEY, JSON.stringify(idsUnicos));
+        }
+
+        function addSelectedOrder(id) {
+            const ids = getSelectedOrdersStorage();
+            const stringId = String(id);
+
+            if (!ids.includes(stringId)) {
+                ids.push(stringId);
+                setSelectedOrdersStorage(ids);
+            }
+        }
+
+        function removeSelectedOrder(id) {
+            const stringId = String(id);
+            const ids = getSelectedOrdersStorage().filter(function (item) {
+                return item !== stringId;
             });
 
-            if (!response.ok) {
-                throw new Error('Erro ao carregar.');
+            setSelectedOrdersStorage(ids);
+        }
+
+        function getPedidosSelecionados() {
+            return getSelectedOrdersStorage();
+        }
+
+        function atualizarContadorSelecionados() {
+            const idsSelecionados = getSelectedOrdersStorage();
+            const checkboxes = getCheckboxesPedidos();
+            const checkboxVisiveisMarcados = checkboxes.filter(function (checkbox) {
+                return checkbox.checked;
+            });
+
+            const contador = document.getElementById('contadorSelecionados');
+            if (contador) {
+                contador.innerText = idsSelecionados.length;
             }
 
-            const pedido = await response.json();
+            const marcarTodos = document.getElementById('marcarTodosPedidos');
 
-            document.getElementById('modalPedidoTitulo').innerText = pedido.titulo || (tituloPrefixo + pedido.id);
-            document.getElementById('modalPedidoSubtitulo').innerText = pedido.subtitulo || 'Visualização rápida';
-
-            document.getElementById('pedidoTipo').innerText = pedido.tipo || '-';
-            document.getElementById('pedidoLocal').innerText = pedido.local || '-';
-            document.getElementById('pedidoRota').innerText = pedido.rota || '-';
-            document.getElementById('pedidoUsuario').innerText = pedido.usuario || '-';
-            document.getElementById('pedidoData').innerText = pedido.data || '-';
-            document.getElementById('pedidoStatus').innerText = pedido.status || '-';
-            document.getElementById('pedidoTotalItens').innerText = pedido.total_itens ?? '-';
-            document.getElementById('pedidoTotalUnidades').innerText = pedido.total_unidades ?? '-';
-
-            if (pedido.edit_url) {
-                document.getElementById('btnEditarDoModal').href = pedido.edit_url;
-            }
-
-            tbody.innerHTML = '';
-
-            const itens = Array.isArray(pedido.itens) ? pedido.itens : [];
-
-            if (!itens.length) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Nenhum item encontrado.</td></tr>`;
+            if (!marcarTodos) {
                 return;
             }
 
-            itens.forEach(function(item) {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${item.produto || '-'}</td>
-                    <td>${item.variacao || '-'}</td>
-                    <td>${item.quantidade || '-'}</td>
-                    <td>${item.unidade || '-'}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        } catch (error) {
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Erro ao carregar os detalhes.</td></tr>`;
-            document.getElementById('modalPedidoSubtitulo').innerText = 'Não foi possível carregar os detalhes';
+            if (!checkboxes.length) {
+                marcarTodos.checked = false;
+                marcarTodos.indeterminate = false;
+                return;
+            }
+
+            if (checkboxVisiveisMarcados.length === 0) {
+                marcarTodos.checked = false;
+                marcarTodos.indeterminate = false;
+                return;
+            }
+
+            if (checkboxVisiveisMarcados.length === checkboxes.length) {
+                marcarTodos.checked = true;
+                marcarTodos.indeterminate = false;
+                return;
+            }
+
+            marcarTodos.checked = false;
+            marcarTodos.indeterminate = true;
         }
-    }
 
-    function fecharModalPedido() {
-        document.getElementById('modalPedidoVisualizar').classList.remove('is-open');
-        document.body.classList.remove('modal-open');
-    }
+        function aplicarSelecaoSalvaNaPagina() {
+            const idsSelecionados = getSelectedOrdersStorage();
 
-    document.querySelectorAll('.btn-ver-pedido').forEach(function (button) {
-        button.addEventListener('click', function () {
-            abrirModalPedidoPorId(
-                this.dataset.orderId,
-                this.dataset.orderType || 'order'
-            );
-        });
-    });
+            getCheckboxesPedidos().forEach(function (checkbox) {
+                checkbox.checked = idsSelecionados.includes(String(checkbox.value));
+            });
 
-    aplicarSelecaoSalvaNaPagina();
+            atualizarContadorSelecionados();
+        }
+
+        function marcarDesmarcarTodosPedidos(checked) {
+            getCheckboxesPedidos().forEach(function (checkbox) {
+                checkbox.checked = checked;
+
+                if (checked) {
+                    addSelectedOrder(checkbox.value);
+                } else {
+                    removeSelectedOrder(checkbox.value);
+                }
+            });
+
+            atualizarContadorSelecionados();
+        }
+
+        function limparSelecaoPedidos() {
+            sessionStorage.removeItem(PEDIDOS_STORAGE_KEY);
+            aplicarSelecaoSalvaNaPagina();
+        }
+
+        function criarInputHidden(name, value) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = name;
+            input.value = value;
+            return input;
+        }
+
+        function enviarLote(url, ids, mensagemVazia) {
+            if (!ids.length) {
+                alert(mensagemVazia);
+                return;
+            }
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            if (!csrfToken) {
+                alert('Token CSRF não encontrado.');
+                return;
+            }
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = url;
+            form.style.display = 'none';
+            form.setAttribute('data-no-ajax', 'true');
+
+            form.appendChild(criarInputHidden('_token', csrfToken));
+
+            ids.forEach(function (id) {
+                form.appendChild(criarInputHidden('order_ids[]', id));
+            });
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        async function abrirModalPedidoPorId(itemId, itemType = 'order') {
+            const modal = document.getElementById('modalPedidoVisualizar');
+            const tbody = document.getElementById('pedidoItensBody');
+
+            const tituloPrefixo = itemType === 'epi_delivery' ? 'Entrega de EPI #' : 'Pedido #';
+
+            document.getElementById('modalPedidoTitulo').innerText = tituloPrefixo + itemId;
+            document.getElementById('modalPedidoSubtitulo').innerText = 'Carregando detalhes...';
+
+            document.getElementById('pedidoTipo').innerText = '-';
+            document.getElementById('pedidoLocal').innerText = '-';
+            document.getElementById('pedidoRota').innerText = '-';
+            document.getElementById('pedidoUsuario').innerText = '-';
+            document.getElementById('pedidoData').innerText = '-';
+            document.getElementById('pedidoStatus').innerText = '-';
+            document.getElementById('pedidoTotalItens').innerText = '-';
+            document.getElementById('pedidoTotalUnidades').innerText = '-';
+            document.getElementById('btnEditarDoModal').href = '#';
+            document.getElementById('btnEditarDoModal').style.display = itemType === 'order' ? 'inline-flex' : 'none';
+
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Carregando...</td></tr>`;
+
+            modal.classList.add('is-open');
+            document.body.classList.add('modal-open');
+
+            try {
+                const quickViewUrl = itemType === 'epi_delivery'
+                    ? `{{ url('/epi-deliveries') }}/${itemId}/quick-view`
+                    : `{{ url('/pedidos') }}/${itemId}/quick-view`;
+
+                const response = await fetch(quickViewUrl, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar.');
+                }
+
+                const pedido = await response.json();
+
+                document.getElementById('modalPedidoTitulo').innerText = pedido.titulo || (tituloPrefixo + pedido.id);
+                document.getElementById('modalPedidoSubtitulo').innerText = pedido.subtitulo || 'Visualização rápida';
+
+                document.getElementById('pedidoTipo').innerText = pedido.tipo || '-';
+                document.getElementById('pedidoLocal').innerText = pedido.local || '-';
+                document.getElementById('pedidoRota').innerText = pedido.rota || '-';
+                document.getElementById('pedidoUsuario').innerText = pedido.usuario || '-';
+                document.getElementById('pedidoData').innerText = pedido.data || '-';
+                document.getElementById('pedidoStatus').innerText = pedido.status || '-';
+                document.getElementById('pedidoTotalItens').innerText = pedido.total_itens ?? '-';
+                document.getElementById('pedidoTotalUnidades').innerText = pedido.total_unidades ?? '-';
+
+                if (pedido.edit_url) {
+                    document.getElementById('btnEditarDoModal').href = pedido.edit_url;
+                }
+
+                tbody.innerHTML = '';
+
+                const itens = Array.isArray(pedido.itens) ? pedido.itens : [];
+
+                if (!itens.length) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Nenhum item encontrado.</td></tr>`;
+                    return;
+                }
+
+                itens.forEach(function(item) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${item.produto || '-'}</td>
+                        <td>${item.variacao || '-'}</td>
+                        <td>${item.quantidade || '-'}</td>
+                        <td>${item.unidade || '-'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Erro ao carregar os detalhes.</td></tr>`;
+                document.getElementById('modalPedidoSubtitulo').innerText = 'Não foi possível carregar os detalhes';
+            }
+        }
+
+        function fecharModalPedido() {
+            const modal = document.getElementById('modalPedidoVisualizar');
+
+            if (modal) {
+                modal.classList.remove('is-open');
+            }
+
+            document.body.classList.remove('modal-open');
+        }
+
+        function rehidratarPedidos() {
+            aplicarSelecaoSalvaNaPagina();
+        }
+
+        window.limparSelecao = limparSelecaoPedidos;
+        window.fecharModalPedido = fecharModalPedido;
+        window.abrirModalPedidoPorId = abrirModalPedidoPorId;
+        window.__ordersRehydrate = rehidratarPedidos;
+
+        if (!window.__ordersEventsBound) {
+            window.__ordersEventsBound = true;
+
+            document.addEventListener('change', function (event) {
+                if (event.target && event.target.id === 'marcarTodosPedidos') {
+                    marcarDesmarcarTodosPedidos(event.target.checked);
+                    return;
+                }
+
+                if (event.target && event.target.classList.contains('pedido-item-check')) {
+                    if (event.target.checked) {
+                        addSelectedOrder(event.target.value);
+                    } else {
+                        removeSelectedOrder(event.target.value);
+                    }
+
+                    atualizarContadorSelecionados();
+                }
+            });
+
+            document.addEventListener('click', function (event) {
+                const btnPdf = event.target.closest('#btnPdfSelecionados');
+                if (btnPdf) {
+                    event.preventDefault();
+
+                    enviarLote(
+                        "{{ route('orders.pdf.batch') }}",
+                        getPedidosSelecionados(),
+                        'Selecione pelo menos um pedido para gerar as requisições PDF.'
+                    );
+                    return;
+                }
+
+                const btnExcel = event.target.closest('#btnExcelSelecionados');
+                if (btnExcel) {
+                    event.preventDefault();
+
+                    enviarLote(
+                        "{{ route('orders.excel.batch') }}",
+                        getPedidosSelecionados(),
+                        'Selecione pelo menos um pedido para gerar a contagem Excel.'
+                    );
+                    return;
+                }
+
+                const btnVer = event.target.closest('.btn-ver-pedido');
+                if (btnVer) {
+                    event.preventDefault();
+
+                    abrirModalPedidoPorId(
+                        btnVer.dataset.orderId,
+                        btnVer.dataset.orderType || 'order'
+                    );
+                }
+            });
+
+            document.addEventListener('page:updated', function () {
+                if (typeof window.__ordersRehydrate === 'function') {
+                    window.__ordersRehydrate();
+                }
+            });
+        }
+
+        rehidratarPedidos();
+    })();
 </script>
+
 @endsection

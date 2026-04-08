@@ -99,6 +99,116 @@
         border-color: #bb2d3b;
         color: #fff;
     }
+    .desktop-only{
+    display:block;
+}
+
+.mobile-only{
+    display:none;
+}
+
+.mobile-requests-list{
+    display:grid;
+    gap:14px;
+}
+
+.mobile-request-card{
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:18px;
+    padding:16px;
+    background:rgba(255,255,255,.03);
+    box-shadow:0 8px 24px rgba(0,0,0,.08);
+}
+
+.mobile-request-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:12px;
+    margin-bottom:14px;
+}
+
+.mobile-request-id{
+    font-size:1rem;
+    font-weight:800;
+    margin:0;
+    line-height:1.2;
+    color:#fff;
+}
+
+.mobile-request-date{
+    font-size:.85rem;
+    color:rgba(255,255,255,.68);
+    margin-top:4px;
+}
+
+.mobile-request-grid{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:10px;
+    margin-bottom:14px;
+}
+
+.mobile-request-kpi{
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:14px;
+    padding:12px;
+    background:rgba(255,255,255,.025);
+}
+
+.mobile-request-kpi-label{
+    font-size:.78rem;
+    opacity:.72;
+    margin-bottom:4px;
+    color:rgba(255,255,255,.72);
+    font-weight:700;
+}
+
+.mobile-request-kpi-value{
+    font-size:.95rem;
+    font-weight:700;
+    line-height:1.35;
+    color:#fff;
+    word-break:break-word;
+}
+
+.mobile-request-actions{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:8px;
+}
+
+.mobile-request-actions .btn,
+.mobile-request-actions a.btn,
+.mobile-request-actions form,
+.mobile-request-actions form .btn{
+    width:100%;
+}
+
+.mobile-request-actions form{
+    margin:0;
+}
+
+.mobile-request-actions .btn{
+    min-height:44px;
+    border-radius:12px;
+}
+
+@media (max-width: 768px){
+    .desktop-only{
+        display:none;
+    }
+
+    .mobile-only{
+        display:block;
+    }
+}
+
+@media (max-width: 480px){
+    .mobile-request-grid{
+        grid-template-columns:1fr;
+    }
+}
 </style>
 
 <div class="page-head">
@@ -195,6 +305,8 @@
     </div>
 
     <div class="card-body">
+    {{-- DESKTOP --}}
+    <div class="desktop-only">
         <div class="table-wrap">
             <table class="table">
                 <thead>
@@ -272,11 +384,121 @@
                 </tbody>
             </table>
         </div>
+    </div>
 
-        <div style="margin-top:18px;">
-            {{ $requests->links() }}
+    {{-- MOBILE --}}
+    <div class="mobile-only">
+        <div class="mobile-requests-list">
+            @forelse($requests as $materialRequest)
+                <div class="mobile-request-card">
+                    <div class="mobile-request-top">
+                        <div>
+                            <h3 class="mobile-request-id">Solicitação #{{ $materialRequest->id }}</h3>
+                            <div class="mobile-request-date">
+                                {{ $materialRequest->created_at?->format('d/m/Y H:i') }}
+                            </div>
+                        </div>
+
+                        <div>
+                            @if($materialRequest->status === 'pending')
+                                <span class="badge-status badge-warning">Pendente</span>
+                            @elseif($materialRequest->status === 'approved')
+                                <span class="badge-status badge-success">Aprovada</span>
+                            @elseif($materialRequest->status === 'rejected')
+                                <span class="badge-status badge-danger">Recusada</span>
+                            @else
+                                <span class="badge-status">{{ ucfirst($materialRequest->status) }}</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="mobile-request-grid">
+                        <div class="mobile-request-kpi">
+                            <div class="mobile-request-kpi-label">Local</div>
+                            <div class="mobile-request-kpi-value">
+                                {{ $materialRequest->location->name ?? '-' }}
+                            </div>
+                        </div>
+
+                        <div class="mobile-request-kpi">
+                            <div class="mobile-request-kpi-label">Itens</div>
+                            <div class="mobile-request-kpi-value">
+                                {{ $materialRequest->items->count() }}
+                            </div>
+                        </div>
+
+                        <div class="mobile-request-kpi">
+                            <div class="mobile-request-kpi-label">Tipo</div>
+                            <div class="mobile-request-kpi-value">
+                                {{ ucfirst($materialRequest->scope ?? '-') }}
+                            </div>
+                        </div>
+
+                        <div class="mobile-request-kpi">
+                            <div class="mobile-request-kpi-label">Status</div>
+                            <div class="mobile-request-kpi-value">
+                                @if($materialRequest->status === 'pending')
+                                    Pendente
+                                @elseif($materialRequest->status === 'approved')
+                                    Aprovada
+                                @elseif($materialRequest->status === 'rejected')
+                                    Recusada
+                                @else
+                                    {{ ucfirst($materialRequest->status) }}
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mobile-request-actions">
+                        <button
+                            type="button"
+                            class="btn btn-dark"
+                            onclick="openRequestModal('{{ route('supervisor.requests.quick-view', $materialRequest->id) }}', false)"
+                        >
+                            <i class="bi bi-eye"></i>
+                            <span>Ver detalhes</span>
+                        </button>
+
+                        @if($materialRequest->status === 'pending')
+                            <a href="{{ route('supervisor.requests.edit', $materialRequest->id) }}" class="btn btn-green">
+                                <i class="bi bi-pencil-square"></i>
+                                <span>Editar</span>
+                            </a>
+
+                            <form
+                                method="POST"
+                                action="{{ route('supervisor.requests.destroy', $materialRequest->id) }}"
+                                onsubmit="return confirm('Tem certeza que deseja excluir esta solicitação?');"
+                            >
+                                @csrf
+                                @method('DELETE')
+
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="bi bi-trash"></i>
+                                    <span>Excluir</span>
+                                </button>
+                            </form>
+                        @else
+                            <a href="{{ route('supervisor.requests.redo', $materialRequest->id) }}" class="btn btn-green">
+                                <i class="bi bi-arrow-repeat"></i>
+                                <span>Repetir solicitação</span>
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            @empty
+                <div class="mobile-request-card">
+                    <div class="text-muted-small">Nenhuma solicitação encontrada.</div>
+                </div>
+            @endforelse
         </div>
     </div>
+
+    <div style="margin-top:18px;">
+        {{ $requests->links() }}
+    </div>
+</div>
 </div>
 
 <div class="custom-modal" id="requestQuickViewModal">

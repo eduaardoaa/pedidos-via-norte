@@ -10,9 +10,7 @@
     </div>
 
     <div class="actions-inline">
-        <a href="{{ route('employees.create') }}" class="btn btn-green">
-            + Cadastrar Funcionário
-        </a>
+        
 
         <a href="{{ route('epi-deliveries.create') }}" class="btn btn-green">
             + Nova Entrega

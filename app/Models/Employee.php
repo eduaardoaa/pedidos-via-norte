@@ -12,6 +12,7 @@ class Employee extends Model
         'registration',
         'hired_at',
         'cargo_id',
+        'location_id',
         'active'
     ];
 
@@ -25,8 +26,17 @@ class Employee extends Model
         return $this->belongsTo(Cargo::class);
     }
 
+    public function location()
+    {
+        return $this->belongsTo(Location::class);
+    }
+
     public function epiDeliveries()
     {
         return $this->hasMany(EpiDelivery::class);
     }
+    public function employees()
+{
+    return $this->hasMany(Employee::class);
+}
 }

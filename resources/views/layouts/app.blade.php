@@ -131,7 +131,6 @@
             transition:opacity .16s ease;
         }
 
-        /* MOBILE */
         @media (max-width: 991px){
             html,
             body{
@@ -189,7 +188,6 @@
             }
         }
 
-        /* DESKTOP */
         @media (min-width: 992px){
             .sidebar{
                 position:sticky;
@@ -205,76 +203,77 @@
                 display:none;
             }
         }
+
         @media (max-width: 991px){
-    html,
-    body{
-        height:auto;
-        min-height:100%;
-        overflow-x:hidden;
-        overflow-y:auto;
-    }
+            html,
+            body{
+                height:auto;
+                min-height:100%;
+                overflow-x:hidden;
+                overflow-y:auto;
+            }
 
-    .app-shell{
-        height:auto;
-        min-height:100vh;
-        min-height:100dvh;
-        overflow:visible;
-    }
+            .app-shell{
+                height:auto;
+                min-height:100vh;
+                min-height:100dvh;
+                overflow:visible;
+            }
 
-    .main-content{
-        height:auto;
-        min-height:100vh;
-        min-height:100dvh;
-        overflow-x:hidden;
-        overflow-y:visible;
-        -webkit-overflow-scrolling:touch;
-    }
+            .main-content{
+                height:auto;
+                min-height:100vh;
+                min-height:100dvh;
+                overflow-x:hidden;
+                overflow-y:visible;
+                -webkit-overflow-scrolling:touch;
+            }
 
-    .sidebar-close-mobile{
-        display:inline-flex;
-    }
+            .sidebar-close-mobile{
+                display:inline-flex;
+            }
 
-    .sidebar{
-        height:100vh;
-        height:100dvh;
-        max-height:100vh;
-        max-height:100dvh;
-        position:fixed;
-        top:0;
-        left:0;
-        z-index:1001;
-        width:280px;
-        max-width:85vw;
-        transform:translateX(-100%);
-        opacity:1;
-        pointer-events:none;
-    }
+            .sidebar{
+                height:100vh;
+                height:100dvh;
+                max-height:100vh;
+                max-height:100dvh;
+                position:fixed;
+                top:0;
+                left:0;
+                z-index:1001;
+                width:280px;
+                max-width:85vw;
+                transform:translateX(-100%);
+                opacity:1;
+                pointer-events:none;
+            }
 
-    .sidebar-overlay{
-        position:fixed;
-        inset:0;
-        background:rgba(0,0,0,.45);
-        opacity:0;
-        visibility:hidden;
-        pointer-events:none;
-        z-index:1000;
-    }
+            .sidebar-overlay{
+                position:fixed;
+                inset:0;
+                background:rgba(0,0,0,.45);
+                opacity:0;
+                visibility:hidden;
+                pointer-events:none;
+                z-index:1000;
+            }
 
-    .app-shell.sidebar-mobile-open .sidebar{
-        transform:translateX(0);
-        pointer-events:auto;
-    }
+            .app-shell.sidebar-mobile-open .sidebar{
+                transform:translateX(0);
+                pointer-events:auto;
+            }
 
-    .app-shell.sidebar-mobile-open .sidebar-overlay{
-        opacity:1;
-        visibility:visible;
-        pointer-events:auto;
-    }
+            .app-shell.sidebar-mobile-open .sidebar-overlay{
+                opacity:1;
+                visibility:visible;
+                pointer-events:auto;
+            }
 
-    .app-shell.sidebar-collapsed .sidebar{
-        transform:translateX(-100%);
-    }
-}
+            .app-shell.sidebar-collapsed .sidebar{
+                transform:translateX(-100%);
+            }
+        }
     </style>
 </head>
 <body>
@@ -461,12 +460,29 @@
         const pageTopbarTitle = document.getElementById('pageTopbarTitle');
         const pageTopbarDescription = document.getElementById('pageTopbarDescription');
         const mobileBreakpoint = 991;
+        const PEDIDOS_STORAGE_KEY = 'orders_selected_ids_v1';
 
         let isAnimatingSidebar = false;
         let partialNavigationInProgress = false;
 
         function isMobile() {
             return window.innerWidth <= mobileBreakpoint;
+        }
+
+        function currentPath(urlLike = window.location.href) {
+            const url = new URL(urlLike, window.location.origin);
+            return url.pathname.replace(/\/+$/, '');
+        }
+
+        function isOrdersPath(urlLike = window.location.href) {
+            const path = currentPath(urlLike);
+            return path === '/pedidos' || path.startsWith('/pedidos/');
+        }
+
+        function clearOrdersSelectionIfLeaving(urlLike = window.location.href) {
+            if (!isOrdersPath(urlLike)) {
+                sessionStorage.removeItem(PEDIDOS_STORAGE_KEY);
+            }
         }
 
         function lockSidebarAnimation() {
@@ -674,7 +690,12 @@
                     closeMobileSidebar();
                 }
 
+                clearOrdersSelectionIfLeaving(url);
                 executeScriptsFromContainer(pageContent);
+
+                document.dispatchEvent(new CustomEvent('page:updated', {
+                    detail: { url: url }
+                }));
             } catch (error) {
                 console.error('Erro na navegação parcial:', error);
                 window.location.href = url;
@@ -686,6 +707,7 @@
 
         applyInitialSidebarState();
         updateActiveSidebarLink(window.location.href);
+        clearOrdersSelectionIfLeaving(window.location.href);
 
         if (sidebarToggle) {
             sidebarToggle.addEventListener('click', function () {

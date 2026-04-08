@@ -442,6 +442,114 @@
             font-size:.87rem;
         }
     }
+    .visits-pagination-wrap{
+    margin-top:18px;
+    display:flex;
+    justify-content:center;
+}
+
+.visits-pagination-wrap nav{
+    width:100%;
+}
+
+.visits-pagination-wrap nav > div{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+}
+
+.visits-pagination-wrap p{
+    margin:0;
+    color:rgba(255,255,255,.68);
+    font-size:.92rem;
+    line-height:1.45;
+}
+
+.visits-pagination-wrap .hidden{
+    display:none !important;
+}
+
+.visits-pagination-wrap .relative.z-0.inline-flex{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+}
+
+.visits-pagination-wrap .relative.inline-flex.items-center{
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    min-width:42px;
+    height:42px;
+    padding:0 14px !important;
+    border-radius:12px !important;
+    border:1px solid rgba(255,255,255,.10);
+    background:rgba(255,255,255,.04);
+    color:#fff;
+    text-decoration:none;
+    font-weight:700;
+    line-height:1;
+    box-sizing:border-box;
+}
+
+.visits-pagination-wrap span.relative.inline-flex.items-center{
+    background:rgba(30,144,255,.16);
+    color:#60a5fa;
+    border-color:rgba(96,165,250,.28);
+}
+
+.visits-pagination-wrap a.relative.inline-flex.items-center:hover{
+    background:rgba(255,255,255,.08);
+}
+
+.visits-pagination-wrap .relative.inline-flex.items-center svg{
+    width:16px !important;
+    height:16px !important;
+    max-width:16px !important;
+    max-height:16px !important;
+    flex:none;
+}
+
+@media (max-width: 768px){
+    .visits-pagination-wrap nav > div{
+        flex-direction:column;
+        align-items:stretch;
+    }
+
+    .visits-pagination-wrap p{
+        text-align:center;
+        order:2;
+    }
+
+    .visits-pagination-wrap .relative.z-0.inline-flex{
+        justify-content:center;
+        order:1;
+    }
+
+    .visits-pagination-wrap .relative.inline-flex.items-center{
+        min-width:40px;
+        height:40px;
+        padding:0 12px !important;
+        font-size:.92rem;
+    }
+}
+.visits-pagination-wrap .relative.z-0.inline-flex{
+    width:100%;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.visits-pagination-wrap .relative.z-0.inline-flex a:first-child{
+    margin-right:auto;
+}
+
+.visits-pagination-wrap .relative.z-0.inline-flex a:last-child{
+    margin-left:auto;
+}
 </style>
 
 <div class="visits-page">
@@ -667,9 +775,9 @@
                 </table>
             </div>
 
-            <div style="margin-top:18px;">
-                {{ $visits->links() }}
-            </div>
+            <div class="visits-pagination-wrap">
+    {{ $visits->links() }}
+</div>
         </div>
     </div>
 </div>

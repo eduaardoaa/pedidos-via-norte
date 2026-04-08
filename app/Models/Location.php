@@ -43,4 +43,9 @@ class Location extends Model
     {
         return $this->scope === 'almoxarifado';
     }
+
+    public function isCentroCusto(): bool
+    {
+        return $this->scope === 'centro_custo';
+    }
 }

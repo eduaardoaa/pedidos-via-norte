@@ -58,6 +58,137 @@
         white-space:nowrap;
     }
 
+    .btn-danger{
+    background:linear-gradient(135deg, #ef4444, #b91c1c);
+    color:#fff;
+    border:none;
+    box-shadow:0 8px 20px rgba(239,68,68,.35);
+    transition:all .2s ease;
+    position:relative;
+    overflow:hidden;
+}
+
+.btn-danger i{
+    font-size:1rem;
+}
+
+.btn-danger:hover{
+    transform:translateY(-1px);
+    box-shadow:0 10px 22px rgba(239,68,68,.4);
+    filter:brightness(1.05);
+    color:#fff;
+}
+
+.btn-danger:active{
+    transform:scale(.97);
+    box-shadow:0 4px 10px rgba(239,68,68,.3);
+}
+
+/* efeito "brilho" ao clicar */
+.btn-danger::after{
+    content:'';
+    position:absolute;
+    top:0;
+    left:-100%;
+    width:100%;
+    height:100%;
+    background:linear-gradient(120deg, transparent, rgba(255,255,255,.25), transparent);
+    transition:.4s;
+}
+
+.btn-danger:hover::after{
+    left:100%;
+}
+@media (max-width: 820px){
+    .btn-danger{
+        font-weight:600;
+        letter-spacing:.3px;
+    }
+}
+
+    @media (max-width: 1100px){
+        .filters-grid-cabo-requests{
+            grid-template-columns:repeat(3, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 768px){
+        .table-actions{
+            flex-direction:column;
+            align-items:stretch;
+        }
+
+        .table-actions .btn,
+        .table-actions a.btn,
+        .table-actions form,
+        .table-actions form .btn{
+            width:100%;
+        }
+    }
+
+    @media (max-width: 700px){
+        .filters-grid-cabo-requests{
+            grid-template-columns:repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 520px){
+        .filters-grid-cabo-requests{
+            grid-template-columns:1fr;
+        }
+    }
+        .filters-grid-cabo-requests{
+        display:grid;
+        grid-template-columns:repeat(5, minmax(0, 1fr));
+        gap:12px;
+        align-items:end;
+    }
+
+    .filters-grid-cabo-requests .form-group{
+        margin-bottom:0;
+    }
+
+    .table-actions{
+        display:flex;
+        gap:8px;
+        flex-wrap:wrap;
+        align-items:center;
+    }
+
+    .table-actions > .btn,
+    .table-actions > a.btn,
+    .table-actions > form{
+        margin:0;
+    }
+
+    .table-actions form{
+        display:inline-flex;
+        margin:0;
+    }
+
+    .table-actions .btn{
+        min-height:42px;
+        padding:10px 16px;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        gap:8px;
+        border-radius:12px;
+        white-space:nowrap;
+    }
+
+    .btn-action-inline{
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        gap:8px;
+        margin:0;
+        min-height:42px;
+        padding:10px 16px;
+        border-radius:12px;
+        white-space:nowrap;
+    }
+
     .table-actions .btn-danger{
         background:linear-gradient(135deg, #dc3545, #b91c1c);
         color:#fff;
@@ -68,6 +199,92 @@
     .table-actions .btn-danger:hover{
         filter:brightness(1.05);
         color:#fff;
+    }
+
+    .desktop-only{
+        display:block;
+    }
+
+    .mobile-only{
+        display:none;
+    }
+
+    .mobile-requests-list{
+        display:grid;
+        gap:14px;
+    }
+
+    .mobile-request-card{
+        border:1px solid rgba(255,255,255,.08);
+        border-radius:18px;
+        padding:16px;
+        background:rgba(255,255,255,.02);
+        box-shadow:0 8px 24px rgba(0,0,0,.08);
+    }
+
+    .mobile-request-top{
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:12px;
+        margin-bottom:14px;
+    }
+
+    .mobile-request-id{
+        font-size:1rem;
+        font-weight:700;
+        margin:0;
+        line-height:1.2;
+    }
+
+    .mobile-request-date{
+        font-size:.85rem;
+        opacity:.8;
+        margin-top:4px;
+    }
+
+    .mobile-request-grid{
+        display:grid;
+        grid-template-columns:repeat(2, minmax(0, 1fr));
+        gap:10px;
+        margin-bottom:14px;
+    }
+
+    .mobile-request-kpi{
+        border:1px solid rgba(255,255,255,.06);
+        border-radius:14px;
+        padding:12px;
+        background:rgba(255,255,255,.025);
+    }
+
+    .mobile-request-kpi-label{
+        font-size:.78rem;
+        opacity:.75;
+        margin-bottom:4px;
+    }
+
+    .mobile-request-kpi-value{
+        font-size:.95rem;
+        font-weight:600;
+        line-height:1.35;
+        word-break:break-word;
+    }
+
+    .mobile-request-actions{
+        display:grid;
+        grid-template-columns:1fr;
+        gap:8px;
+    }
+
+    .mobile-request-actions .btn,
+    .mobile-request-actions a.btn,
+    .mobile-request-actions form,
+    .mobile-request-actions form .btn{
+        width:100%;
+    }
+
+    .mobile-request-actions form{
+        margin:0;
     }
 
     @media (max-width: 1100px){
@@ -101,6 +318,23 @@
             grid-template-columns:1fr;
         }
     }
+
+    @media (max-width: 820px){
+        .desktop-only{
+            display:none;
+        }
+
+        .mobile-only{
+            display:block;
+        }
+    }
+
+    @media (max-width: 480px){
+        .mobile-request-grid{
+            grid-template-columns:1fr;
+        }
+    }
+
 </style>
 
 <div class="page-head">
@@ -199,7 +433,6 @@
         </form>
     </div>
 </div>
-
 <div class="card" style="margin-top:16px;">
     <div class="card-header">
         <div>
@@ -209,27 +442,103 @@
     </div>
 
     <div class="card-body">
-        <div class="table-wrap">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Rota</th>
-                        <th>Local</th>
-                        <th>Itens</th>
-                        <th>Status</th>
-                        <th>Data</th>
-                        <th style="width:320px;">Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($requests as $materialRequest)
+        {{-- DESKTOP: tabela normal --}}
+        <div class="desktop-only">
+            <div class="table-wrap">
+                <table class="table">
+                    <thead>
                         <tr>
-                            <td>#{{ $materialRequest->id }}</td>
-                            <td>{{ $materialRequest->route->name ?? '-' }}</td>
-                            <td>{{ $materialRequest->location->name ?? '-' }}</td>
-                            <td>{{ $materialRequest->items->count() }}</td>
-                            <td>
+                            <th>ID</th>
+                            <th>Rota</th>
+                            <th>Local</th>
+                            <th>Itens</th>
+                            <th>Status</th>
+                            <th>Data</th>
+                            <th style="width:320px;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($requests as $materialRequest)
+                            <tr>
+                                <td>#{{ $materialRequest->id }}</td>
+                                <td>{{ $materialRequest->route->name ?? '-' }}</td>
+                                <td>{{ $materialRequest->location->name ?? '-' }}</td>
+                                <td>{{ $materialRequest->items->count() }}</td>
+                                <td>
+                                    @if($materialRequest->status === 'pending')
+                                        <span class="badge-status badge-warning">Pendente</span>
+                                    @elseif($materialRequest->status === 'approved')
+                                        <span class="badge-status badge-success">Aprovada</span>
+                                    @elseif($materialRequest->status === 'rejected')
+                                        <span class="badge-status badge-danger">Recusada</span>
+                                    @else
+                                        <span class="badge-status">{{ ucfirst($materialRequest->status) }}</span>
+                                    @endif
+                                </td>
+                                <td>{{ $materialRequest->created_at?->format('d/m/Y H:i') }}</td>
+                                <td>
+                                    <div class="table-actions">
+                                        <button
+                                            type="button"
+                                            class="btn btn-dark"
+                                            onclick="openRequestModal('{{ route('cabo.requests.quick-view', $materialRequest->id) }}', true)"
+                                        >
+                                            <i class="bi bi-eye"></i>
+                                            <span>Ver</span>
+                                        </button>
+
+                                        @if($materialRequest->status === 'pending')
+                                            <a href="{{ route('cabo.requests.edit', $materialRequest->id) }}" class="btn btn-green">
+                                                <i class="bi bi-pencil-square"></i>
+                                                <span>Editar</span>
+                                            </a>
+
+                                            <form
+                                                method="POST"
+                                                action="{{ route('cabo.requests.destroy', $materialRequest->id) }}"
+                                                onsubmit="return confirm('Tem certeza que deseja excluir esta solicitação?');"
+                                            >
+                                                @csrf
+                                                @method('DELETE')
+
+                                                <button type="submit" class="btn btn-danger btn-action-inline">
+                                                    <i class="bi bi-trash"></i>
+                                                    <span>Excluir</span>
+                                                </button>
+                                            </form>
+                                        @else
+                                            <a href="{{ route('cabo.requests.redo', $materialRequest->id) }}" class="btn btn-green">
+                                                <i class="bi bi-arrow-repeat"></i>
+                                                <span>Repetir</span>
+                                            </a>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7">Nenhuma solicitação encontrada.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- MOBILE: cards --}}
+        <div class="mobile-only">
+            <div class="mobile-requests-list">
+                @forelse($requests as $materialRequest)
+                    <div class="mobile-request-card">
+                        <div class="mobile-request-top">
+                            <div>
+                                <h3 class="mobile-request-id">Solicitação #{{ $materialRequest->id }}</h3>
+                                <div class="mobile-request-date">
+                                    {{ $materialRequest->created_at?->format('d/m/Y H:i') }}
+                                </div>
+                            </div>
+
+                            <div>
                                 @if($materialRequest->status === 'pending')
                                     <span class="badge-status badge-warning">Pendente</span>
                                 @elseif($materialRequest->status === 'approved')
@@ -239,54 +548,82 @@
                                 @else
                                     <span class="badge-status">{{ ucfirst($materialRequest->status) }}</span>
                                 @endif
-                            </td>
-                            <td>{{ $materialRequest->created_at?->format('d/m/Y H:i') }}</td>
-                            <td>
-                                <div class="table-actions">
-                                    <button
-                                        type="button"
-                                        class="btn btn-dark"
-                                        onclick="openRequestModal('{{ route('cabo.requests.quick-view', $materialRequest->id) }}', true)"
-                                    >
-                                        <i class="bi bi-eye"></i>
-                                        <span>Ver</span>
-                                    </button>
+                            </div>
+                        </div>
 
-                                    @if($materialRequest->status === 'pending')
-                                        <a href="{{ route('cabo.requests.edit', $materialRequest->id) }}" class="btn btn-green">
-                                            <i class="bi bi-pencil-square"></i>
-                                            <span>Editar</span>
-                                        </a>
-
-                                        <form
-                                            method="POST"
-                                            action="{{ route('cabo.requests.destroy', $materialRequest->id) }}"
-                                            onsubmit="return confirm('Tem certeza que deseja excluir esta solicitação?');"
-                                        >
-                                            @csrf
-                                            @method('DELETE')
-
-                                            <button type="submit" class="btn btn-danger btn-action-inline">
-                                                <i class="bi bi-trash"></i>
-                                                <span>Excluir</span>
-                                            </button>
-                                        </form>
-                                    @else
-                                        <a href="{{ route('cabo.requests.redo', $materialRequest->id) }}" class="btn btn-green">
-                                            <i class="bi bi-arrow-repeat"></i>
-                                            <span>Repetir</span>
-                                        </a>
-                                    @endif
+                        <div class="mobile-request-grid">
+                            <div class="mobile-request-kpi">
+                                <div class="mobile-request-kpi-label">Rota</div>
+                                <div class="mobile-request-kpi-value">
+                                    {{ $materialRequest->route->name ?? '-' }}
                                 </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7">Nenhuma solicitação encontrada.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                            </div>
+
+                            <div class="mobile-request-kpi">
+                                <div class="mobile-request-kpi-label">Local</div>
+                                <div class="mobile-request-kpi-value">
+                                    {{ $materialRequest->location->name ?? '-' }}
+                                </div>
+                            </div>
+
+                            <div class="mobile-request-kpi">
+                                <div class="mobile-request-kpi-label">Itens</div>
+                                <div class="mobile-request-kpi-value">
+                                    {{ $materialRequest->items->count() }}
+                                </div>
+                            </div>
+
+                            <div class="mobile-request-kpi">
+                                <div class="mobile-request-kpi-label">Tipo</div>
+                                <div class="mobile-request-kpi-value">
+                                    {{ ucfirst($materialRequest->scope ?? '-') }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mobile-request-actions">
+                            <button
+                                type="button"
+                                class="btn btn-dark"
+                                onclick="openRequestModal('{{ route('cabo.requests.quick-view', $materialRequest->id) }}', true)"
+                            >
+                                <i class="bi bi-eye"></i>
+                                <span>Ver detalhes</span>
+                            </button>
+
+                            @if($materialRequest->status === 'pending')
+                                <a href="{{ route('cabo.requests.edit', $materialRequest->id) }}" class="btn btn-green">
+                                    <i class="bi bi-pencil-square"></i>
+                                    <span>Editar</span>
+                                </a>
+
+                                <form
+                                    method="POST"
+                                    action="{{ route('cabo.requests.destroy', $materialRequest->id) }}"
+                                    onsubmit="return confirm('Tem certeza que deseja excluir esta solicitação?');"
+                                >
+                                    @csrf
+                                    @method('DELETE')
+
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="bi bi-trash"></i>
+                                        <span>Excluir</span>
+                                    </button>
+                                </form>
+                            @else
+                                <a href="{{ route('cabo.requests.redo', $materialRequest->id) }}" class="btn btn-green">
+                                    <i class="bi bi-arrow-repeat"></i>
+                                    <span>Repetir solicitação</span>
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+                @empty
+                    <div class="mobile-request-card">
+                        <div class="text-muted-small">Nenhuma solicitação encontrada.</div>
+                    </div>
+                @endforelse
+            </div>
         </div>
 
         <div style="margin-top:18px;">

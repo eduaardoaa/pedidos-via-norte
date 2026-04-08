@@ -6,7 +6,7 @@
 <div class="page-head">
     <div>
         <h2>Movimentações de Estoque</h2>
-        <p>Acompanhe entradas, saídas e ajustes realizados no estoque.</p>
+        <p>Acompanhe o resumo consolidado de entradas, saídas e ajustes por produto no período.</p>
     </div>
 
     <div class="actions-inline">
@@ -109,8 +109,8 @@
 
 <div class="card">
     <div class="card-header">
-        <div class="card-title">Lista de Movimentações ({{ $movements->total() }})</div>
-        <div class="card-subtitle">Cada registro representa uma alteração real no estoque.</div>
+        <div class="card-title">Resumo por Produto ({{ $rows->count() }})</div>
+        <div class="card-subtitle">Cada linha mostra o consolidado do período por produto/variação.</div>
     </div>
 
     <div class="card-body">
@@ -118,55 +118,33 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Data</th>
                         <th>Produto</th>
                         <th>Variação</th>
-                        <th>Tipo</th>
-                        <th>Quantidade</th>
-                        <th>Antes</th>
-                        <th>Depois</th>
-                        <th>Local</th>
-                        <th>Origem</th>
-                        <th>Documento</th>
-                        <th>Observação</th>
+                        <th>Saldo inicial</th>
+                        <th>Entradas</th>
+                        <th>Saídas</th>
+                        <th>Ajustes</th>
+                        <th>Saldo final</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($movements as $movement)
+                    @forelse($rows as $row)
                         <tr>
-                            <td>{{ optional($movement->movement_date)->format('d/m/Y') }}</td>
-                            <td>{{ $movement->product?->name ?? '-' }}</td>
-                            <td>{{ $movement->variant?->name ?? '-' }}</td>
-                            <td>
-                                @if($movement->type === 'entry')
-                                    <span class="badge-status badge-success">Entrada</span>
-                                @elseif($movement->type === 'exit')
-                                    <span class="badge-status badge-warning">Saída</span>
-                                @elseif($movement->type === 'adjustment')
-                                    <span class="badge-status badge-info">Ajuste</span>
-                                @else
-                                    <span class="badge-status badge-info">Inicial</span>
-                                @endif
-                            </td>
-                            <td>{{ rtrim(rtrim(number_format((float) $movement->quantity, 3, '.', ''), '0'), '.') }}</td>
-                            <td>{{ rtrim(rtrim(number_format((float) $movement->balance_before, 3, '.', ''), '0'), '.') }}</td>
-                            <td>{{ rtrim(rtrim(number_format((float) $movement->balance_after, 3, '.', ''), '0'), '.') }}</td>
-                            <td>{{ $movement->location?->name ?? '-' }}</td>
-                            <td>{{ $movement->source_name ?? '-' }}</td>
-                            <td>{{ $movement->document_number ?? '-' }}</td>
-                            <td>{{ $movement->notes ?? '-' }}</td>
+                            <td>{{ $row->product_name ?? '-' }}</td>
+                            <td>{{ $row->variant_name ?? '-' }}</td>
+                            <td>{{ rtrim(rtrim(number_format((float) $row->opening_balance, 3, '.', ''), '0'), '.') }}</td>
+                            <td>{{ rtrim(rtrim(number_format((float) $row->total_entries, 3, '.', ''), '0'), '.') }}</td>
+                            <td>{{ rtrim(rtrim(number_format((float) $row->total_exits, 3, '.', ''), '0'), '.') }}</td>
+                            <td>{{ rtrim(rtrim(number_format((float) $row->total_adjustments, 3, '.', ''), '0'), '.') }}</td>
+                            <td>{{ rtrim(rtrim(number_format((float) $row->closing_balance, 3, '.', ''), '0'), '.') }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="11">Nenhuma movimentação encontrada.</td>
+                            <td colspan="7">Nenhuma movimentação encontrada.</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
-        </div>
-
-        <div style="margin-top:18px;">
-            {{ $movements->links() }}
         </div>
     </div>
 </div>

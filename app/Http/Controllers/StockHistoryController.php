@@ -18,55 +18,135 @@ class StockHistoryController extends Controller
         $locationId = $request->get('stock_location_id');
         $type = $request->get('type');
 
-        $query = StockMovement::with(['product', 'variant', 'location', 'user'])
-            ->whereBetween('movement_date', [$dateFrom, $dateTo]);
+        $baseQuery = StockMovement::query()
+            ->whereBetween('stock_movements.movement_date', [$dateFrom, $dateTo]);
 
         if ($productId) {
-            $query->where('product_id', $productId);
+            $baseQuery->where('stock_movements.product_id', $productId);
         }
 
         if ($locationId) {
-            $query->where('stock_location_id', $locationId);
+            $baseQuery->where('stock_movements.stock_location_id', $locationId);
         }
 
         if ($type) {
-            $query->where('type', $type);
+            $baseQuery->where('stock_movements.type', $type);
         }
 
-        $movements = $query
-            ->orderByDesc('movement_date')
-            ->orderByDesc('id')
-            ->paginate(30)
-            ->withQueryString();
-
-        $summaryQuery = StockMovement::query()
-            ->whereBetween('movement_date', [$dateFrom, $dateTo]);
-
-        if ($productId) {
-            $summaryQuery->where('product_id', $productId);
-        }
-
-        if ($locationId) {
-            $summaryQuery->where('stock_location_id', $locationId);
-        }
-
-        if ($type) {
-            $summaryQuery->where('type', $type);
-        }
-
-        $summary = $summaryQuery
+        $summary = (clone $baseQuery)
             ->selectRaw("
-                COALESCE(SUM(CASE WHEN type = 'entry' THEN quantity ELSE 0 END), 0) as total_entries,
-                COALESCE(SUM(CASE WHEN type = 'exit' THEN quantity ELSE 0 END), 0) as total_exits,
-                COALESCE(SUM(CASE WHEN type = 'adjustment' THEN quantity ELSE 0 END), 0) as total_adjustments
+                COALESCE(SUM(CASE WHEN stock_movements.type = 'entry' THEN stock_movements.quantity ELSE 0 END), 0) as total_entries,
+                COALESCE(SUM(CASE WHEN stock_movements.type = 'exit' THEN stock_movements.quantity ELSE 0 END), 0) as total_exits,
+                COALESCE(SUM(CASE WHEN stock_movements.type = 'adjustment' THEN stock_movements.quantity ELSE 0 END), 0) as total_adjustments
             ")
             ->first();
+
+        $groupedBase = StockMovement::query()
+            ->whereBetween('stock_movements.movement_date', [$dateFrom, $dateTo]);
+
+        if ($productId) {
+            $groupedBase->where('stock_movements.product_id', $productId);
+        }
+
+        if ($locationId) {
+            $groupedBase->where('stock_movements.stock_location_id', $locationId);
+        }
+
+        if ($type) {
+            $groupedBase->where('stock_movements.type', $type);
+        }
+
+        $firstMovements = StockMovement::query()
+            ->selectRaw('MIN(stock_movements.id) as first_id, stock_movements.product_id, stock_movements.product_variant_id')
+            ->whereBetween('stock_movements.movement_date', [$dateFrom, $dateTo]);
+
+        if ($productId) {
+            $firstMovements->where('stock_movements.product_id', $productId);
+        }
+
+        if ($locationId) {
+            $firstMovements->where('stock_movements.stock_location_id', $locationId);
+        }
+
+        if ($type) {
+            $firstMovements->where('stock_movements.type', $type);
+        }
+
+        $firstMovements->groupBy('stock_movements.product_id', 'stock_movements.product_variant_id');
+
+        $lastMovements = StockMovement::query()
+            ->selectRaw('MAX(stock_movements.id) as last_id, stock_movements.product_id, stock_movements.product_variant_id')
+            ->whereBetween('stock_movements.movement_date', [$dateFrom, $dateTo]);
+
+        if ($productId) {
+            $lastMovements->where('stock_movements.product_id', $productId);
+        }
+
+        if ($locationId) {
+            $lastMovements->where('stock_movements.stock_location_id', $locationId);
+        }
+
+        if ($type) {
+            $lastMovements->where('stock_movements.type', $type);
+        }
+
+        $lastMovements->groupBy('stock_movements.product_id', 'stock_movements.product_variant_id');
+
+        $rows = $groupedBase
+            ->join('products', 'products.id', '=', 'stock_movements.product_id')
+            ->leftJoin('product_variants', 'product_variants.id', '=', 'stock_movements.product_variant_id')
+            ->leftJoinSub($firstMovements, 'first_movements', function ($join) {
+                $join->on('first_movements.product_id', '=', 'stock_movements.product_id');
+
+                $join->where(function ($query) {
+                    $query->whereColumn('first_movements.product_variant_id', 'stock_movements.product_variant_id')
+                        ->orWhere(function ($sub) {
+                            $sub->whereNull('first_movements.product_variant_id')
+                                ->whereNull('stock_movements.product_variant_id');
+                        });
+                });
+            })
+            ->leftJoinSub($lastMovements, 'last_movements', function ($join) {
+                $join->on('last_movements.product_id', '=', 'stock_movements.product_id');
+
+                $join->where(function ($query) {
+                    $query->whereColumn('last_movements.product_variant_id', 'stock_movements.product_variant_id')
+                        ->orWhere(function ($sub) {
+                            $sub->whereNull('last_movements.product_variant_id')
+                                ->whereNull('stock_movements.product_variant_id');
+                        });
+                });
+            })
+            ->leftJoin('stock_movements as first_stock_movement', 'first_stock_movement.id', '=', 'first_movements.first_id')
+            ->leftJoin('stock_movements as last_stock_movement', 'last_stock_movement.id', '=', 'last_movements.last_id')
+            ->groupBy(
+                'stock_movements.product_id',
+                'stock_movements.product_variant_id',
+                'products.name',
+                'product_variants.name',
+                'first_stock_movement.balance_before',
+                'last_stock_movement.balance_after'
+            )
+            ->selectRaw("
+                stock_movements.product_id,
+                stock_movements.product_variant_id,
+                products.name as product_name,
+                product_variants.name as variant_name,
+                COALESCE(SUM(CASE WHEN stock_movements.type = 'entry' THEN stock_movements.quantity ELSE 0 END), 0) as total_entries,
+                COALESCE(SUM(CASE WHEN stock_movements.type = 'exit' THEN stock_movements.quantity ELSE 0 END), 0) as total_exits,
+                COALESCE(SUM(CASE WHEN stock_movements.type = 'adjustment' THEN stock_movements.quantity ELSE 0 END), 0) as total_adjustments,
+                COALESCE(first_stock_movement.balance_before, 0) as opening_balance,
+                COALESCE(last_stock_movement.balance_after, 0) as closing_balance
+            ")
+            ->orderBy('products.name')
+            ->orderBy('product_variants.name')
+            ->get();
 
         $products = Product::where('active', true)->orderBy('name')->get();
         $locations = StockLocation::where('active', true)->orderBy('name')->get();
 
         return view('estoque.movimentacoes', compact(
-            'movements',
+            'rows',
             'summary',
             'products',
             'locations',

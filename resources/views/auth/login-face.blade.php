@@ -314,9 +314,9 @@
             setStatus('Carregando reconhecimento facial...', 'info');
 
             await Promise.all([
-                faceapi.nets.tinyFaceDetector.loadFromUri('/face-api/models'),
-                faceapi.nets.faceLandmark68Net.loadFromUri('/face-api/models'),
-                faceapi.nets.faceRecognitionNet.loadFromUri('/face-api/models')
+                faceapi.nets.tinyFaceDetector.loadFromUri('/public/face-api/models'),
+                faceapi.nets.faceLandmark68Net.loadFromUri('/public/face-api/models'),
+                faceapi.nets.faceRecognitionNet.loadFromUri('/public/face-api/models')
             ]);
 
             modelsLoaded = true;
